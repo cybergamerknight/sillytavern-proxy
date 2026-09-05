@@ -15,25 +15,32 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // OpenCode Zen endpoint
-    const targetUrl = 'https://opencode.ai/zen/v1/responses';
+  // OpenCode Zen endpoint
+  const targetUrl = 'https://opencode.ai/zen/v1/responses';
+  // Forward the Authorization header (or fall back to a Vercel Environment Variable)
+  const authHeader = req.headers.get('authorization') || `Bearer ${process.env.OPENAI_API_KEY}`;
+  
+  // Read the body correctly for Web APIs
+  const bodyText = await req.text();
 
-    // Forward the Authorization header (or fall back to a Vercel Environment Variable)
-    const authHeader = req.headers['authorization'] || `Bearer ${process.env.ZEN_API_KEY}`;
+  const response = await fetch(targetUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': authHeader
+    },
+    body: bodyText
+  });
+  
+  const data = await response.json();
+  
+  // FIX: Use standard Response.json
+  return Response.json(data, { status: response.status });
 
-    const response = await fetch(targetUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': authHeader
-      },
-      body: JSON.stringify(req.body)
-    });
-
-    const data = await response.json();
-    return res.status(response.status).json(data);
-
-  } catch (error) {
-    return res.status(500).json({ error: 'Proxy Error', details: error.message });
-  }
-};
+} catch (error) {
+  // FIX: Use standard Response.json
+  return Response.json(
+    { error: 'Proxy Error', details: error.message }, 
+    { status: 500 }
+  );
+}
