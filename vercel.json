@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/v1/chat/completions",
-      "destination": "/api/proxy.js"
+      "destination": "api/proxy.js"
     }
   ]
 }
